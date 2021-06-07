@@ -1,0 +1,47 @@
+version: '1'
+services:
+  eureka-server:
+    build:
+      context: eureka-server
+      dockerfile: Dockerfile
+    ports:
+      - 8090:8090
+  email-consumer:
+    build:
+      context: email-consumer
+      dockerfile: Dockerfile
+    environment:
+      - JAVA_OPTS=
+        -DEUREKA_SERVER=http://localhost:8090/eureka
+    restart: on-failure
+    depends_on:
+      - eureka-server
+    ports:
+      - 8091:8091
+  email-producer:
+    build:
+      context: email-producer
+      dockerfile: Dockerfile
+    environment:
+      - JAVA_OPTS=
+        -DEUREKA_SERVER=http://localhost:8090/eureka
+    restart: on-failure
+    depends_on:
+      - eureka-server
+    ports:
+      - 8080:8080
+  email-zuul-service:
+    build:
+      context: email-zuul-service
+      dockerfile: Dockerfile
+    environment:
+      - JAVA_OPTS=
+        -DEUREKA_SERVER=http://localhost:8090/eureka
+      restart: on-failure
+      depends_on:
+        - eureka-server
+      ports:
+        - 8079:8079
+networks:
+  spring-cloud-network:
+    driver: bridge
